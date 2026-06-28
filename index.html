@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>FinTrack Pro</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --bg-base:       #0a0a12;
+      --bg-surface:    #12121e;
+      --bg-card:       rgba(255,255,255,0.05);
+      --bg-card-hover: rgba(255,255,255,0.08);
+      --glass-border:  rgba(255,255,255,0.10);
+      --glass-blur:    blur(20px);
+
+      --accent-green:  #00e5a0;
+      --accent-red:    #ff4f6d;
+      --accent-blue:   #6c63ff;
+      --accent-gold:   #ffd166;
+
+      --grad-green:    linear-gradient(135deg, #00e5a0, #00b4d8);
+      --grad-red:      linear-gradient(135deg, #ff4f6d, #f77f00);
+      --grad-purple:   linear-gradient(135deg, #6c63ff, #a855f7);
+      --grad-gold:     linear-gradient(135deg, #ffd166, #ef8c36);
+
+      --text-primary:  #f0f0f8;
+      --text-secondary:#9090b0;
+      --text-muted:    #55556a;
+
+      --radius-sm:  10px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+      --radius-xl:  32px;
+
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
+      --shadow-glow-green: 0 0 24px rgba(0,229,160,0.2);
+      --shadow-glow-red:   0 0 24px rgba(255,79,109,0.2);
+
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Background ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================================
+       LAYOUT
+    ============================================================ */
+    #app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding-bottom: 100px; }
+
+    /* ============================================================
+       TOP BAR
+    ============================================================ */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,18,0.85);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-title {
+      font-size: 20px; font-weight: 700;
+      background: var(--grad-purple);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .topbar-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition);
+    }
+    .icon-btn:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+    .icon-btn .material-icons-round { font-size: 20px; }
+
+    /* ============================================================
+       PAGES
+    ============================================================ */
+    .page { display: none; padding: 20px; animation: fadeSlide 0.3s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       BALANCE CARD
+    ============================================================ */
+    .balance-card {
+      background: var(--grad-purple);
+      border-radius: var(--radius-xl);
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(108,99,255,0.35);
+      margin-bottom: 20px;
+    }
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .balance-card::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -40px;
+      width: 220px; height: 220px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+    .balance-label {
+      font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
+      text-transform: uppercase; opacity: 0.75; margin-bottom: 8px;
+    }
+    .balance-amount {
+      font-size: 40px; font-weight: 800; letter-spacing: -1px;
+      position: relative; z-index: 1;
+    }
+    .balance-sub { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+
+    /* ============================================================
+       STAT CARDS ROW
+    ============================================================ */
+    .stats-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: var(--transition);
+    }
+    .stat-card:hover { background: var(--bg-card-hover); }
+    .stat-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .stat-label .material-icons-round { font-size: 14px; }
+    .stat-value { font-size: 22px; font-weight: 700; }
+    .stat-value.green { color: var(--accent-green); }
+    .stat-value.red   { color: var(--accent-red); }
+    .stat-value.gold  { color: var(--accent-gold); }
+
+    /* ============================================================
+       ACTION BUTTONS
+    ============================================================ */
+    .action-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 24px;
+    }
+    .action-btn {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; padding: 20px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+      background: var(--bg-card);
+      cursor: pointer; transition: var(--transition);
+      color: var(--text-primary);
+      font-size: 13px; font-weight: 600;
+    }
+    .action-btn .material-icons-round { font-size: 28px; }
+    .action-btn.green { border-color: rgba(0,229,160,0.3); }
+    .action-btn.green .material-icons-round { color: var(--accent-green); }
+    .action-btn.green:hover { background: rgba(0,229,160,0.1); box-shadow: var(--shadow-glow-green); }
+    .action-btn.red   { border-color: rgba(255,79,109,0.3); }
+    .action-btn.red .material-icons-round { color: var(--accent-red); }
+    .action-btn.red:hover   { background: rgba(255,79,109,0.1); box-shadow: var(--shadow-glow-red); }
+    .action-btn.blue  { border-color: rgba(108,99,255,0.3); }
+    .action-btn.blue .material-icons-round { color: var(--accent-blue); }
+    .action-btn.blue:hover  { background: rgba(108,99,255,0.1); }
+    .action-btn.gold  { border-color: rgba(255,209,102,0.3); }
+    .action-btn.gold .material-icons-round { color: var(--accent-gold); }
+    .action-btn.gold:hover  { background: rgba(255,209,102,0.1); }
+
+    /* ============================================================
+       SECTION TITLE
+    ============================================================ */
+    .section-title {
+      font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+      color: var(--text-secondary); text-transform: uppercase;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+    }
+    .section-title .material-icons-round { font-size: 16px; }
+
+    /* ============================================================
+       FORM CARD
+    ============================================================ */
+    .form-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.5px;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      transition: var(--transition);
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--accent-blue);
+      background: rgba(108,99,255,0.08);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    select.form-input option { background: #1a1a2e; color: var(--text-primary); }
+
+    /* Type toggle */
+    .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .type-option { display: none; }
+    .type-label {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      cursor: pointer; font-size: 14px; font-weight: 600;
+      transition: var(--transition); color: var(--text-secondary);
+    }
+    .type-label .material-icons-round { font-size: 18px; }
+    #typeCredit:checked + .type-label { background: rgba(0,229,160,0.15); border-color: var(--accent-green); color: var(--accent-green); }
+    #typeDebit:checked  + .type-label { background: rgba(255,79,109,0.15); border-color: var(--accent-red);   color: var(--accent-red); }
+
+    /* File upload */
+    .file-upload {
+      border: 2px dashed var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 20px 16px;
+      text-align: center; cursor: pointer;
+      transition: var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .file-upload:hover { border-color: var(--accent-blue); background: rgba(108,99,255,0.05); }
+    .file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .file-upload-icon { font-size: 32px; color: var(--text-muted); margin-bottom: 8px; }
+    .file-upload-text { font-size: 13px; color: var(--text-secondary); }
+    .file-upload-name { font-size: 12px; color: var(--accent-green); margin-top: 6px; font-weight: 600; }
+    .file-upload.has-file { border-color: var(--accent-green); background: rgba(0,229,160,0.05); }
+
+    /* Submit button */
+    .btn-primary {
+      width: 100%; padding: 16px;
+      background: var(--grad-purple);
+      border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(108,99,255,0.5); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      width: 100%; padding: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary); font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+      font-family: 'Inter', sans-serif;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: var(--bg-card-hover); }
+
+    /* ============================================================
+       TRANSACTION CARDS
+    ============================================================ */
+    .filter-bar {
+      display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filter-bar .form-input { flex: 1; min-width: 0; padding: 12px 14px; font-size: 14px; }
+    .filter-chips { display: flex; gap: 8px; }
+    .chip {
+      padding: 8px 16px; border-radius: 20px;
+      background: var(--bg-card); border: 1px solid var(--glass-border);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: var(--transition); white-space: nowrap;
+      color: var(--text-secondary);
+    }
+    .chip.active-green { background: rgba(0,229,160,0.15); border-color: var(--accent-green); color: var(--accent-green); }
+    .chip.active-red   { background: rgba(255,79,109,0.15); border-color: var(--accent-red);   color: var(--accent-red); }
+    .chip.active-all   { background: rgba(108,99,255,0.15); border-color: var(--accent-blue);  color: var(--accent-blue); }
+
+    .txn-list { display: flex; flex-direction: column; gap: 12px; }
+    .txn-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: var(--transition);
+      animation: fadeSlide 0.3s ease;
+    }
+    .txn-card:hover { background: var(--bg-card-hover); }
+    .txn-card-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; margin-bottom: 10px;
+    }
+    .txn-desc { font-size: 15px; font-weight: 600; flex: 1; margin-right: 8px; }
+    .txn-amount { font-size: 16px; font-weight: 800; white-space: nowrap; }
+    .txn-amount.credit { color: var(--accent-green); }
+    .txn-amount.debit  { color: var(--accent-red); }
+    .txn-meta {
+      display: flex; gap: 12px; font-size: 12px;
+      color: var(--text-muted); margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .txn-meta-item { display: flex; align-items: center; gap: 3px; }
+    .txn-meta-item .material-icons-round { font-size: 12px; }
+    .txn-balance { font-size: 12px; color: var(--text-secondary); }
+    .txn-balance span { color: var(--text-primary); font-weight: 600; }
+    .txn-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .txn-btn {
+      flex: 1; padding: 9px 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      font-size: 11px; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer; transition: var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .txn-btn .material-icons-round { font-size: 14px; }
+    .txn-btn:hover { background: rgba(108,99,255,0.15); color: var(--accent-blue); border-color: var(--accent-blue); }
+    .txn-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .material-icons-round { font-size: 56px; margin-bottom: 16px; opacity: 0.4; }
+    .empty-state p { font-size: 15px; }
+
+    /* ============================================================
+       REPORTS
+    ============================================================ */
+    .report-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .report-tab {
+      flex: 1; padding: 12px 8px; text-align: center;
+      background: var(--bg-card); border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: var(--transition); color: var(--text-secondary);
+    }
+    .report-tab.active { background: var(--grad-purple); border-color: transparent; color: #fff; }
+
+    .report-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 20px; margin-bottom: 12px;
+    }
+    .report-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 14px 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .report-row:last-child { border-bottom: none; }
+    .report-row-label { font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+    .report-row-label .material-icons-round { font-size: 18px; }
+    .report-row-value { font-size: 18px; font-weight: 700; }
+    .report-row-value.green { color: var(--accent-green); }
+    .report-row-value.red   { color: var(--accent-red); }
+    .report-row-value.gold  { color: var(--accent-gold); }
+    .report-row-value.blue  { color: var(--accent-blue); }
+
+    /* ============================================================
+       SETTINGS
+    ============================================================ */
+    .settings-section { margin-bottom: 24px; }
+    .settings-section .section-title { margin-bottom: 16px; }
+    .settings-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600; margin-bottom: 16px;
+    }
+    .settings-status.ok  { background: rgba(0,229,160,0.1); color: var(--accent-green); border: 1px solid rgba(0,229,160,0.2); }
+    .settings-status.err { background: rgba(255,79,109,0.1); color: var(--accent-red);   border: 1px solid rgba(255,79,109,0.2); }
+    .settings-status .material-icons-round { font-size: 18px; }
+
+    textarea.form-input {
+      min-height: 120px; resize: vertical;
+      font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5;
+    }
+
+    /* ============================================================
+       BOTTOM NAV
+    ============================================================ */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: rgba(10,10,18,0.92);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-top: 1px solid var(--glass-border);
+      display: flex; z-index: 100;
+      padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+      padding: 8px 4px; cursor: pointer;
+      color: var(--text-muted); font-size: 10px; font-weight: 600;
+      transition: var(--transition); letter-spacing: 0.3px;
+    }
+    .nav-item .material-icons-round { font-size: 22px; transition: var(--transition); }
+    .nav-item.active { color: var(--accent-blue); }
+    .nav-item.active .material-icons-round { color: var(--accent-blue); }
+
+    /* ============================================================
+       TOAST NOTIFICATION
+    ============================================================ */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e1e30; border: 1px solid var(--glass-border);
+      color: var(--text-primary); padding: 14px 20px;
+      border-radius: var(--radius-md); font-size: 14px; font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: all 0.3s ease; z-index: 999;
+      max-width: 320px; text-align: center;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success .material-icons-round { color: var(--accent-green); }
+    #toast.error   .material-icons-round { color: var(--accent-red); }
+    #toast .material-icons-round { font-size: 20px; flex-shrink: 0; }
+
+    /* ============================================================
+       LOADING OVERLAY
+    ============================================================ */
+    #loader {
+      position: fixed; inset: 0;
+      background: rgba(10,10,18,0.85);
+      backdrop-filter: blur(4px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    #loader.show { opacity: 1; pointer-events: all; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--glass-border);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { color: var(--text-secondary); font-size: 14px; }
+
+    /* ============================================================
+       UTILITIES
+    ============================================================ */
+    .rupee::before { content: '₹'; }
+    .mb-16 { margin-bottom: 16px; }
+    .text-center { text-align: center; }
+    .page-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+  <p id="loaderText">Processing...</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <span class="material-icons-round" id="toastIcon">info</span>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- APP WRAPPER -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-title">FinTrack Pro</span>
+    <div class="topbar-actions">
+      <div class="icon-btn" onclick="showPage('settings')" title="Settings">
+        <span class="material-icons-round">settings</span>
+      </div>
+      <div class="icon-btn" onclick="refreshDashboard()" title="Refresh">
+        <span class="material-icons-round">refresh</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE: DASHBOARD
+  ============================================================ -->
+  <div id="page-dashboard" class="page active">
+    <!-- Balance Card -->
+    <div style="padding: 20px 20px 0;">
+      <div class="balance-card">
+        <div class="balance-label">💰 Current Balance</div>
+        <div class="balance-amount rupee" id="dashBalance">0.00</div>
+        <div class="balance-sub">Last updated: <span id="dashUpdated">—</span></div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label"><span class="material-icons-round" style="color:var(--accent-green)">arrow_upward</span>Today's Credit</div>
+          <div class="stat-value green rupee" id="dashCredit">0.00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><span class="material-icons-round" style="color:var(--accent-red)">arrow_downward</span>Today's Debit</div>
+          <div class="stat-value red rupee" id="dashDebit">0.00</div>
+        </div>
+        <div class="stat-card" style="grid-column: span 2;">
+          <div class="stat-label"><span class="material-icons-round" style="color:var(--accent-gold)">receipt_long</span>Today's Transactions</div>
+          <div class="stat-value gold" id="dashTxnCount">0</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="section-title"><span class="material-icons-round">bolt</span>Quick Actions</div>
+      <div class="action-grid">
+        <button class="action-btn green" onclick="showPage('add'); setType('credit')">
+          <span class="material-icons-round">add_circle</span>Add Credit
+        </button>
+        <button class="action-btn red" onclick="showPage('add'); setType('debit')">
+          <span class="material-icons-round">remove_circle</span>Add Debit
+        </button>
+        <button class="action-btn blue" onclick="showPage('history'); loadHistory()">
+          <span class="material-icons-round">history</span>History
+        </button>
+        <button class="action-btn gold" onclick="showPage('reports'); loadReport('today')">
+          <span class="material-icons-round">bar_chart</span>Reports
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE: ADD TRANSACTION
+  ============================================================ -->
+  <div id="page-add" class="page">
+    <div class="page-title">New Transaction</div>
+    <div class="form-card">
+
+      <div class="form-group">
+        <label class="form-label">Transaction Type</label>
+        <div class="type-toggle">
+          <input type="radio" name="txnType" id="typeCredit" class="type-option" value="credit" checked />
+          <label for="typeCredit" class="type-label">
+            <span class="material-icons-round">arrow_upward</span> Credit
+          </label>
+          <input type="radio" name="txnType" id="typeDebit" class="type-option" value="debit" />
+          <label for="typeDebit" class="type-label">
+            <span class="material-icons-round">arrow_downward</span> Debit
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="txnDesc">Description *</label>
+        <input type="text" id="txnDesc" class="form-input" placeholder="What is this transaction for?" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="txnAmount">Amount (₹) *</label>
+        <input type="number" id="txnAmount" class="form-input" placeholder="0.00" min="0.01" step="0.01" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Screenshot *</label>
+        <div class="file-upload" id="payUploadZone">
+          <input type="file" id="payFile" accept="image/*" onchange="handleFileSelect(this, 'payUploadZone', 'payFileName')" />
+          <div class="material-icons-round file-upload-icon">upload_file</div>
+          <div class="file-upload-text">Tap to upload payment screenshot</div>
+          <div class="file-upload-name" id="payFileName"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Transaction Success Screenshot *</label>
+        <div class="file-upload" id="sucUploadZone">
+          <input type="file" id="sucFile" accept="image/*" onchange="handleFileSelect(this, 'sucUploadZone', 'sucFileName')" />
+          <div class="material-icons-round file-upload-icon">task_alt</div>
+          <div class="file-upload-text">Tap to upload success screenshot</div>
+          <div class="file-upload-name" id="sucFileName"></div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="saveTxnBtn" onclick="saveTransaction()">
+        <span class="material-icons-round">save</span> Save Transaction
+      </button>
+      <button class="btn-secondary" onclick="resetForm()">
+        <span>Clear Form</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE: HISTORY
+  ============================================================ -->
+  <div id="page-history" class="page">
+    <div class="page-title">Transaction History</div>
+
+    <div class="filter-bar">
+      <input type="text" class="form-input" id="searchInput" placeholder="🔍  Search transactions..." oninput="filterTransactions()" />
+    </div>
+    <div class="filter-bar">
+      <input type="date" class="form-input" id="dateFilter" onchange="filterTransactions()" style="flex:1;" />
+      <div class="filter-chips">
+        <div class="chip active-all" id="chipAll" onclick="setChip('all')">All</div>
+        <div class="chip" id="chipCredit" onclick="setChip('credit')">Credit</div>
+        <div class="chip" id="chipDebit" onclick="setChip('debit')">Debit</div>
+      </div>
+    </div>
+
+    <div class="txn-list" id="txnList">
+      <div class="empty-state">
+        <span class="material-icons-round">receipt_long</span>
+        <p>No transactions yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE: REPORTS
+  ============================================================ -->
+  <div id="page-reports" class="page">
+    <div class="page-title">Reports</div>
+
+    <div class="report-tabs">
+      <div class="report-tab active" id="tabToday"   onclick="loadReport('today')">Today</div>
+      <div class="report-tab"        id="tabWeekly"  onclick="loadReport('weekly')">Weekly</div>
+      <div class="report-tab"        id="tabMonthly" onclick="loadReport('monthly')">Monthly</div>
+    </div>
+
+    <div class="report-card" id="reportContent">
+      <div class="empty-state">
+        <span class="material-icons-round">bar_chart</span>
+        <p>Loading report...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PAGE: SETTINGS
+  ============================================================ -->
+  <div id="page-settings" class="page">
+    <div class="page-title">Settings</div>
+
+    <div id="connStatus" class="settings-status err">
+      <span class="material-icons-round">cloud_off</span>
+      Not connected — configure below
+    </div>
+
+    <div class="form-card">
+      <div class="settings-section">
+        <div class="section-title"><span class="material-icons-round">table_chart</span>Google Sheets</div>
+
+        <div class="form-group">
+          <label class="form-label" for="cfgSheetId">Spreadsheet ID *</label>
+          <input type="text" id="cfgSheetId" class="form-input" placeholder="Paste your Google Sheet ID here" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cfgSheetName">Sheet Name</label>
+          <input type="text" id="cfgSheetName" class="form-input" placeholder="Transactions" value="Transactions" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-title"><span class="material-icons-round">vpn_key</span>Service Account Credentials</div>
+        <div class="form-group">
+          <label class="form-label" for="cfgCreds">Paste your service_account.json contents *</label>
+          <textarea id="cfgCreds" class="form-input" placeholder='{"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}'></textarea>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveSettings()">
+        <span class="material-icons-round">save</span> Save Configuration
+      </button>
+      <button class="btn-secondary" onclick="testConnection()">
+        <span class="material-icons-round">wifi</span> Test Connection
+      </button>
+    </div>
+
+    <div style="margin-top: 20px; padding: 16px; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+      <div class="section-title" style="margin-bottom: 10px;"><span class="material-icons-round">help_outline</span>Setup Guide</div>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.7;">
+        1. Create a Google Cloud project &amp; enable Sheets + Drive APIs.<br>
+        2. Create a Service Account and download the JSON key.<br>
+        3. Share your Google Sheet with the service account email.<br>
+        4. Copy the Sheet ID from the URL and paste above.<br>
+        5. Paste the JSON credentials and save.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+    <span class="material-icons-round">home</span>Home
+  </div>
+  <div class="nav-item" id="nav-add" onclick="showPage('add')">
+    <span class="material-icons-round">add_circle</span>Add
+  </div>
+  <div class="nav-item" id="nav-history" onclick="showPage('history'); loadHistory()">
+    <span class="material-icons-round">history</span>History
+  </div>
+  <div class="nav-item" id="nav-reports" onclick="showPage('reports'); loadReport('today')">
+    <span class="material-icons-round">bar_chart</span>Reports
+  </div>
+</nav>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+let allTransactions = [];   // cached transaction data
+let currentFilter = 'all';  // all | credit | debit
+let submitting = false;     // prevent duplicate submissions
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showPage(name) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('page-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+
+  // Auto-load dashboard data when switching to dashboard
+  if (name === 'dashboard') refreshDashboard();
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  const icon  = document.getElementById('toastIcon');
+  const text  = document.getElementById('toastMsg');
+
+  toast.className = '';
+  toast.classList.add(type);
+  icon.textContent = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+  text.textContent = msg;
+
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3200);
+}
+
+/* ============================================================
+   LOADER
+============================================================ */
+function showLoader(msg = 'Processing...') {
+  document.getElementById('loaderText').textContent = msg;
+  document.getElementById('loader').classList.add('show');
+}
+function hideLoader() {
+  document.getElementById('loader').classList.remove('show');
+}
+
+/* ============================================================
+   FORMAT HELPERS
+============================================================ */
+function fmt(n) {
+  return Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+async function refreshDashboard() {
+  try {
+    const res  = await fetch('/api/dashboard');
+    const data = await res.json();
+
+    document.getElementById('dashBalance').textContent  = '₹' + fmt(data.balance);
+    document.getElementById('dashCredit').textContent   = '₹' + fmt(data.todayCredit);
+    document.getElementById('dashDebit').textContent    = '₹' + fmt(data.todayDebit);
+    document.getElementById('dashTxnCount').textContent = data.todayTransactions;
+    document.getElementById('dashUpdated').textContent  = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    console.error('Dashboard load failed:', e);
+  }
+}
+
+/* ============================================================
+   ADD TRANSACTION
+============================================================ */
+function setType(type) {
+  document.getElementById(type === 'credit' ? 'typeCredit' : 'typeDebit').checked = true;
+}
+
+function handleFileSelect(input, zoneId, nameId) {
+  const zone = document.getElementById(zoneId);
+  const nameEl = document.getElementById(nameId);
+  if (input.files && input.files[0]) {
+    nameEl.textContent = '✓ ' + input.files[0].name;
+    zone.classList.add('has-file');
+  } else {
+    nameEl.textContent = '';
+    zone.classList.remove('has-file');
+  }
+}
+
+function resetForm() {
+  document.getElementById('txnDesc').value   = '';
+  document.getElementById('txnAmount').value = '';
+  document.getElementById('payFile').value   = '';
+  document.getElementById('sucFile').value   = '';
+  document.getElementById('payFileName').textContent = '';
+  document.getElementById('sucFileName').textContent = '';
+  document.getElementById('payUploadZone').classList.remove('has-file');
+  document.getElementById('sucUploadZone').classList.remove('has-file');
+  document.getElementById('typeCredit').checked = true;
+  submitting = false;
+  document.getElementById('saveTxnBtn').disabled = false;
+}
+
+async function saveTransaction() {
+  if (submitting) return;
+
+  const desc   = document.getElementById('txnDesc').value.trim();
+  const amount = document.getElementById('txnAmount').value.trim();
+  const type   = document.querySelector('input[name="txnType"]:checked').value;
+  const payFile = document.getElementById('payFile').files[0];
+  const sucFile = document.getElementById('sucFile').files[0];
+
+  // Validation
+  if (!desc)   return showToast('Description cannot be empty', 'error');
+  if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0)
+               return showToast('Please enter a valid amount', 'error');
+  if (!payFile) return showToast('Payment screenshot is required', 'error');
+  if (!sucFile) return showToast('Transaction success screenshot is required', 'error');
+
+  submitting = true;
+  document.getElementById('saveTxnBtn').disabled = true;
+  showLoader('Uploading screenshots & saving...');
+
+  try {
+    const fd = new FormData();
+    fd.append('description', desc);
+    fd.append('type', type);
+    fd.append('amount', amount);
+    fd.append('paymentScreenshot', payFile);
+    fd.append('successScreenshot', sucFile);
+
+    const res  = await fetch('/api/transaction', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    hideLoader();
+
+    if (data.success) {
+      showToast('Transaction saved! Balance: ₹' + fmt(data.data.balance), 'success');
+      resetForm();
+      refreshDashboard();
+    } else {
+      submitting = false;
+      document.getElementById('saveTxnBtn').disabled = false;
+      showToast(data.message || 'Failed to save transaction', 'error');
+    }
+  } catch (e) {
+    hideLoader();
+    submitting = false;
+    document.getElementById('saveTxnBtn').disabled = false;
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+/* ============================================================
+   HISTORY
+============================================================ */
+async function loadHistory() {
+  const list = document.getElementById('txnList');
+  list.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto 16px;"></div><p>Loading transactions...</p></div>';
+
+  try {
+    const res  = await fetch('/api/transactions');
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.message);
+    allTransactions = data.data || [];
+    filterTransactions();
+  } catch (e) {
+    list.innerHTML = `<div class="empty-state"><span class="material-icons-round">error_outline</span><p>${e.message}</p></div>`;
+  }
+}
+
+function setChip(type) {
+  currentFilter = type;
+  document.querySelectorAll('.chip').forEach(c => c.className = 'chip');
+  if (type === 'all')    document.getElementById('chipAll').classList.add('active-all');
+  if (type === 'credit') document.getElementById('chipCredit').classList.add('active-green');
+  if (type === 'debit')  document.getElementById('chipDebit').classList.add('active-red');
+  filterTransactions();
+}
+
+function filterTransactions() {
+  const search  = (document.getElementById('searchInput').value || '').toLowerCase();
+  const dateVal = document.getElementById('dateFilter').value;
+
+  let filtered = allTransactions.filter(t => {
+    const matchSearch = !search || t.description.toLowerCase().includes(search);
+    const matchType   = currentFilter === 'all'
+                     || (currentFilter === 'credit' && t.credit > 0)
+                     || (currentFilter === 'debit'  && t.debit  > 0);
+    let matchDate = true;
+    if (dateVal) {
+      const d = new Date(dateVal);
+      const formatted = d.toLocaleDateString('en-IN', { day:'2-digit', month:'2-digit', year:'numeric' });
+      matchDate = t.date === formatted;
+    }
+    return matchSearch && matchType && matchDate;
+  });
+
+  renderTransactions(filtered);
+}
+
+function renderTransactions(list) {
+  const container = document.getElementById('txnList');
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state">
+      <span class="material-icons-round">search_off</span>
+      <p>No transactions found</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(t => {
+    const isCredit = t.credit > 0;
+    const amount   = isCredit ? t.credit : t.debit;
+    return `
+    <div class="txn-card">
+      <div class="txn-card-header">
+        <div class="txn-desc">${escHtml(t.description)}</div>
+        <div class="txn-amount ${isCredit ? 'credit' : 'debit'}">
+          ${isCredit ? '+' : '-'}₹${fmt(amount)}
+        </div>
+      </div>
+      <div class="txn-meta">
+        <div class="txn-meta-item">
+          <span class="material-icons-round">calendar_today</span>${t.date}
+        </div>
+        <div class="txn-meta-item">
+          <span class="material-icons-round">schedule</span>${t.time}
+        </div>
+        <div class="txn-meta-item">
+          <span class="material-icons-round">tag</span>#${t.sl}
+        </div>
+      </div>
+      <div class="txn-balance">Balance: <span>₹${fmt(t.balance)}</span></div>
+      <div class="txn-actions">
+        <button class="txn-btn" onclick="openLink('${t.paymentScreenshot}')" ${!t.paymentScreenshot ? 'disabled' : ''}>
+          <span class="material-icons-round">payment</span> Payment
+        </button>
+        <button class="txn-btn" onclick="openLink('${t.successScreenshot}')" ${!t.successScreenshot ? 'disabled' : ''}>
+          <span class="material-icons-round">task_alt</span> Success
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openLink(url) {
+  if (url) window.open(url, '_blank');
+}
+
+function escHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ============================================================
+   REPORTS
+============================================================ */
+async function loadReport(period) {
+  // Update tabs
+  document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab' + period.charAt(0).toUpperCase() + period.slice(1)).classList.add('active');
+
+  const card = document.getElementById('reportContent');
+  card.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto 16px;"></div><p>Generating report...</p></div>';
+
+  try {
+    const res  = await fetch(`/api/reports/${period}`);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const d = data.data;
+    const labels = { today: "Today's Summary", weekly: "This Week's Summary", monthly: "This Month's Summary" };
+
+    card.innerHTML = `
+      <div class="section-title" style="margin-bottom:16px;">
+        <span class="material-icons-round">analytics</span>${labels[period]}
+      </div>
+      <div class="report-row">
+        <div class="report-row-label"><span class="material-icons-round" style="color:var(--accent-green)">arrow_upward</span>Total Credit</div>
+        <div class="report-row-value green">+₹${fmt(d.totalCredit)}</div>
+      </div>
+      <div class="report-row">
+        <div class="report-row-label"><span class="material-icons-round" style="color:var(--accent-red)">arrow_downward</span>Total Debit</div>
+        <div class="report-row-value red">-₹${fmt(d.totalDebit)}</div>
+      </div>
+      <div class="report-row">
+        <div class="report-row-label"><span class="material-icons-round" style="color:var(--accent-gold)">account_balance_wallet</span>Current Balance</div>
+        <div class="report-row-value gold">₹${fmt(d.balance)}</div>
+      </div>
+      <div class="report-row">
+        <div class="report-row-label"><span class="material-icons-round" style="color:var(--accent-blue)">receipt_long</span>Total Transactions</div>
+        <div class="report-row-value blue">${d.count}</div>
+      </div>
+      <div class="report-row">
+        <div class="report-row-label"><span class="material-icons-round" style="color:var(--text-secondary)">trending_up</span>Net Flow</div>
+        <div class="report-row-value ${d.totalCredit - d.totalDebit >= 0 ? 'green' : 'red'}">
+          ${d.totalCredit - d.totalDebit >= 0 ? '+' : ''}₹${fmt(d.totalCredit - d.totalDebit)}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    card.innerHTML = `<div class="empty-state"><span class="material-icons-round">error_outline</span><p>${e.message}</p></div>`;
+  }
+}
+
+/* ============================================================
+   SETTINGS
+============================================================ */
+async function loadSettings() {
+  try {
+    const res  = await fetch('/api/config');
+    const data = await res.json();
+    document.getElementById('cfgSheetId').value   = data.sheetId || '';
+    document.getElementById('cfgSheetName').value = data.sheetName || 'Transactions';
+    updateConnStatus(data.hasCredentials);
+  } catch (e) { /* silent */ }
+}
+
+function updateConnStatus(connected) {
+  const el = document.getElementById('connStatus');
+  if (connected) {
+    el.className = 'settings-status ok';
+    el.innerHTML = '<span class="material-icons-round">cloud_done</span> Configuration loaded — test the connection below';
+  } else {
+    el.className = 'settings-status err';
+    el.innerHTML = '<span class="material-icons-round">cloud_off</span> Not connected — configure below';
+  }
+}
+
+async function saveSettings() {
+  const sheetId   = document.getElementById('cfgSheetId').value.trim();
+  const sheetName = document.getElementById('cfgSheetName').value.trim() || 'Transactions';
+  const credsRaw  = document.getElementById('cfgCreds').value.trim();
+
+  if (!sheetId) return showToast('Spreadsheet ID is required', 'error');
+
+  const body = { sheetId, sheetName };
+  if (credsRaw) {
+    try { JSON.parse(credsRaw); } catch (e) { return showToast('Invalid JSON credentials', 'error'); }
+    body.credentials = credsRaw;
+  }
+
+  showLoader('Saving configuration...');
+  try {
+    const res  = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    hideLoader();
+
+    if (data.success) {
+      showToast('Configuration saved!', 'success');
+      updateConnStatus(!!credsRaw);
+      document.getElementById('cfgCreds').value = '';
+    } else {
+      showToast(data.message || 'Save failed', 'error');
+    }
+  } catch (e) {
+    hideLoader();
+    showToast('Network error', 'error');
+  }
+}
+
+async function testConnection() {
+  showLoader('Testing connection...');
+  try {
+    const res  = await fetch('/api/test-connection');
+    const data = await res.json();
+    hideLoader();
+
+    if (data.success) {
+      showToast(data.message, 'success');
+      document.getElementById('connStatus').className = 'settings-status ok';
+      document.getElementById('connStatus').innerHTML = '<span class="material-icons-round">cloud_done</span> Connected successfully!';
+    } else {
+      showToast(data.message || 'Connection failed', 'error');
+    }
+  } catch (e) {
+    hideLoader();
+    showToast('Connection test failed', 'error');
+  }
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+(function init() {
+  refreshDashboard();
+  loadSettings();
+})();
+</script>
+</body>
+</html>
