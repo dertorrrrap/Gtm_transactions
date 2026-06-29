@@ -1,0 +1,13 @@
+{
+  "name": "fintrack-pro",
+  "version": "1.0.0",
+  "description": "Mobile-first finance tracker with Google Sheets & Drive integration",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "googleapis": "^140.0.0"
+  }
+}
